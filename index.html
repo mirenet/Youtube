@@ -1064,18 +1064,25 @@ function getYouTubeID(url){
 }
 
 function onYTStateChange(event){
-  // 0 === ended
-  if(event.data === YT.PlayerState.ENDED){
-    // automatski "stisni" next dugme (poziva next())
-    try{
-      // Pozovemo next() direktno kako bismo izbegli fokus/klik probleme
-      next();
-    }catch(e){
-      console.warn("Auto-next failed:", e);
-      // fallback: simulate click
-      const nb = document.getElementById('nextBtn');
-      if(nb) nb.click();
+  // 0 === ended, 1 === playing, 2 === paused, 3 === buffering
+  try{
+    if(event.data === YT.PlayerState.ENDED){
+      // automatski "stisni" next dugme (poziva next())
+      try{
+        next();
+      }catch(e){
+        console.warn("Auto-next failed:", e);
+        const nb = document.getElementById('nextBtn');
+        if(nb) nb.click();
+      }
+    } else if(event.data === YT.PlayerState.PLAYING){
+      // update media session state
+      try{ if('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing'; }catch(e){}
+    } else if(event.data === YT.PlayerState.PAUSED){
+      try{ if('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused'; }catch(e){}
     }
+  }catch(e){
+    console.warn('onYTStateChange error', e);
   }
 }
 
@@ -1121,7 +1128,72 @@ function cueAndPlayUrl(youtubeUrl, autoplay = true){
 }
 
 /* ---------------------------
-   KRAJ YT IFRAME PLAYER CODE
+   MEDIA SESSION: metadata + handlers
+   - ovo pomaže da sistem tretira reproduce kao media playback
+   - ažuriraj metadata svaki put kad se promeni pesma
+   --------------------------- */
+
+function updateMediaSessionMetadata(artist, track, imageUrl){
+  try{
+    if(!('mediaSession' in navigator)) return;
+    const artwork = [];
+    if(imageUrl){
+      // push several sizes fallback (device may pick best)
+      artwork.push({ src: imageUrl,   sizes: '512x512', type: 'image/jpeg' });
+      artwork.push({ src: imageUrl,   sizes: '256x256', type: 'image/jpeg' });
+      artwork.push({ src: imageUrl,   sizes: '96x96', type: 'image/jpeg' });
+    }
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: track || '',
+      artist: artist || '',
+      album: '',
+      artwork: artwork
+    });
+  }catch(e){ console.warn("updateMediaSessionMetadata failed", e); }
+}
+
+// Media Session action handlers
+function setupMediaSessionHandlers(){
+  if(!('mediaSession' in navigator)) return;
+  try{
+    navigator.mediaSession.setActionHandler('play', async ()=> {
+      try {
+        // resume hidden player or cue & play currentVideoUrl
+        if(ytPlayer && typeof ytPlayer.playVideo === 'function'){
+          try{ ytPlayer.playVideo(); }catch(e){ console.warn(e); }
+        } else {
+          if(currentVideoUrl) cueAndPlayUrl(currentVideoUrl, true);
+        }
+        navigator.mediaSession.playbackState = 'playing';
+      } catch(e){ console.warn('mediaSession play handler', e); }
+    });
+    navigator.mediaSession.setActionHandler('pause', ()=> {
+      try{
+        if(ytPlayer && typeof ytPlayer.pauseVideo === 'function') ytPlayer.pauseVideo();
+        navigator.mediaSession.playbackState = 'paused';
+      }catch(e){ console.warn(e); }
+    });
+    navigator.mediaSession.setActionHandler('stop', ()=> {
+      try{
+        stopVideo();
+        navigator.mediaSession.playbackState = 'none';
+      }catch(e){ console.warn(e); }
+    });
+    navigator.mediaSession.setActionHandler('nexttrack', ()=> {
+      try{ next(); }catch(e){ console.warn(e); }
+    });
+    // optional: previous track -> we don't have prev logic; map to stop
+    navigator.mediaSession.setActionHandler('previoustrack', ()=> {
+      try{ stopVideo(); }catch(e){ console.warn(e); }
+    });
+  }catch(e){ console.warn('setupMediaSessionHandlers failed', e); }
+}
+
+// initialize handlers on load
+setupMediaSessionHandlers();
+
+/* ---------------------------
+   KRAJ MEDIA SESSION
    --------------------------- */
 
 
@@ -1142,7 +1214,6 @@ async function preloadNextTrack(){
     
     const youtubeUrl = await searchYouTubeHtml(`${normalizeArtistForSearch(pickArtist)} - ${pickTrack}`);
     preloadCache = { artist: pickArtist, track: pickTrack, images, bio, youtubeUrl };
-
 }
 
 async function loadArtist(artist) {
@@ -1175,7 +1246,10 @@ async function loadArtist(artist) {
         currentVideoUrl = youtubeUrl;
         currentVideoUrlArtist = artist;
         currentVideoUrlTrack = pickTrack;
-        
+
+        // update media session metadata (use first image if available)
+        const artwork = (images && images.length) ? images[0] : null;
+        updateMediaSessionMetadata(artist, pickTrack, artwork);
         
         preloadNextTrack();
     } catch (e) {
@@ -1194,8 +1268,8 @@ async function play(){
     if(!currentVideoUrl) return;
     // umesto intent u NewPipe - koristimo skriveni embed
     cueAndPlayUrl(currentVideoUrl, true);
-    // napomena: ako korisnik nije prethodno interagovao, browser moze blokirati autoplay.
-    // zato je najcesce potrebno da korisnik klikne play (sto i jeste).
+    // update media session state to playing (will be adjusted by onStateChange)
+    try{ if('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing'; }catch(e){}
    //  preloadNextTrack();
 }
 
@@ -1217,6 +1291,10 @@ async function next(){
         currentVideoUrlArtist = artist;
         currentVideoUrlTrack = track;
 
+        // update media session metadata (use first image if available)
+        const artwork = (images && images.length) ? images[0] : null;
+        updateMediaSessionMetadata(artist, track, artwork);
+
         // umesto intent navigacije: loadamo u skriveni player i reprodukujemo
         cueAndPlayUrl(youtubeUrl, true);
 
@@ -1235,6 +1313,7 @@ function stopVideo(){
     }catch(e){ console.warn(e); }
     // kao fallback, postavimo trenutni url na EMPTY (ne otvaramo novi intent)
     currentVideoUrl = EMPTY_VIDEO_URL;
+    try{ if('mediaSession' in navigator) navigator.mediaSession.playbackState = 'none'; }catch(e){}
 }
 
 // --- Event listeners ---
@@ -1309,11 +1388,12 @@ checkOrientation();
 window.addEventListener('resize', checkOrientation);
 window.addEventListener('orientationchange', checkOrientation);
 
-
-
-
-
-
+// Re-setup media session handlers if page regains focus (optional improvement)
+window.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible') {
+    setupMediaSessionHandlers();
+  }
+});
 
 </script>
 </body>

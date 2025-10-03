@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YouTube Playlist Player</title>
+<style>
+  body { font-family: sans-serif; background: #111; color: #eee; text-align: center; padding: 20px; }
+  iframe { margin: 20px auto; display: block; }
+  button { margin: 5px; padding: 10px 20px; border: none; border-radius: 5px; background: #333; color: #eee; cursor: pointer; }
+  button:hover { background: #555; }
+</style>
+</head>
+<body>
+<h1>YouTube Playlist Player</h1>
+<iframe id="player" width="560" height="315"
+  src="https://www.youtube.com/embed/QNJL6nfu__Q?enablejsapi=1"
+  frameborder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+  allowfullscreen>
+</iframe>
+<div>
+  <button onclick="prevVideo()">⏮ Prev</button>
+  <button onclick="nextVideo()">⏭ Next</button>
+</div>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+  // Lista YouTube video ID-eva
+  const playlist = [
+    "QNJL6nfu__Q", // Video 1
+    "dQw4w9WgXcQ", // Video 2
+    "3JZ_D3ELwOQ", // Video 3
+    "kJQP7kiw5Fk", // Video 4
+    "9bZkp7q19f0"  // Video 5
+  ];
+
+  let currentIndex = 0;
+  let player;
+
+  function onYouTubeIframeAPIReady() {
+    player = new YT.Player('player', {
+      videoId: playlist[currentIndex],
+      events: {
+        'onReady': (event) => event.target.playVideo(),
+        'onStateChange': onPlayerStateChange
+      }
+    });
+  }
+
+  function onPlayerStateChange(event) {
+    // Kada video završi, pusti sledeći automatski
+    if(event.data === YT.PlayerState.ENDED){
+      nextVideo();
+    }
+  }
+
+  function nextVideo() {
+    currentIndex = (currentIndex + 1) % playlist.length;
+    player.loadVideoById(playlist[currentIndex]);
+  }
+
+  function prevVideo() {
+    currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+    player.loadVideoById(playlist[currentIndex]);
+  }
+</script>
+</body>
+</html>

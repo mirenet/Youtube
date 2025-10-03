@@ -202,10 +202,7 @@ display: none;
 .bio-wrap {
   flex: 1;    /* da se siri */
   width: 90%;
-  /* height: 250px; */
- /* position: relative; */
   overflow-y: auto;
-  /* padding-top: 60px; */ /* visina top bara */
   padding-bottom: 100px; /* visina controls */
   position: relative;
 }
@@ -226,12 +223,10 @@ display: none;
   position: fixed;
   bottom: env(safe-area-inset-bottom, 10px);
   display: flex;
- /* flex: 0 0 70px; */  /* visina dugmica */
   gap: 18px;
   align-items: center;
   justify-content: center;
   width: 100%;
-/*  margin-top: 25px; */  /* prostor do bio */
   margin-bottom: 5px;
 }
 
@@ -341,33 +336,29 @@ display: none;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 80%;
-  max-width: 400px;
+  width: 90%;
+  max-width: 420px;
   background: #1a1a1c;
   border-radius: 12px;
-  padding: 20px;
-  z-index: 100;
+  padding: 16px;
+  z-index: 1000;
 }
 
-.popup input {
+.popup h3 { margin: 0 0 10px 0; color: #CBD868; }
+.popup label { display:block; margin-top:8px; color:#ddd; font-size:13px;}
+.popup input, .popup select, .popup textarea {
   width: 100%;
-  padding: 10px;
-  border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.2);
-  background: transparent;
-  color: inherit;
-  margin-bottom: 12px;
+  padding: 8px;
+  margin-top:4px;
+  border-radius: 8px;
+  background: #111;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.06);
+  box-sizing: border-box;
 }
 
-.popup button {
-  width: 100%;
-  padding: 10px;
-  border-radius: 10px;
-  border: none;
-  background: var(--btn-accent);
-  color: #000;
-  cursor: pointer;
-}
+.popup .row { display:flex; gap:8px; margin-top:8px; }
+.popup .row button { flex:1; padding:8px; border-radius:8px; border:none; cursor:pointer; }
 
 .dropdown {
   position: absolute;
@@ -379,7 +370,7 @@ display: none;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-z-index: 101; /* dodato */
+  z-index: 101; /* dodato */
 }
 
 .dropdown button {
@@ -401,7 +392,7 @@ z-index: 101; /* dodato */
 visibility: hidden;
 min-width: 160px;
 max-width: 320px;
-background-color: rgba(83,82,85,0.95); /* tvoja boja sa blago providnom pozadinom */
+background-color: rgba(83,82,85,0.95);
 color: #fff;
 text-align: center;
 border-radius: 24px;
@@ -422,7 +413,7 @@ transition: opacity 0.25s ease-in-out, bottom 0.25s ease-in-out;
 .toast.show {
 visibility: visible;
 opacity: 1;
-bottom: 100px; /* blagi “slide-up” efekat */
+bottom: 100px;
 }
 
 /* Vrati korisnika u portrait mode*/
@@ -432,7 +423,7 @@ bottom: 100px; /* blagi “slide-up” efekat */
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: #000; /* potpuno crno, neprozirno */
+  background: #000;
   color: #fff;
   display: flex;
   justify-content: center;
@@ -446,7 +437,9 @@ bottom: 100px; /* blagi “slide-up” efekat */
   display: none; /* default hidden */
 }
 
-
+.hidden-file-input {
+  display:none;
+}
 
 </style>
 </head>
@@ -463,6 +456,7 @@ bottom: 100px; /* blagi “slide-up” efekat */
   <div class="dropdown" id="plusDropdown" aria-hidden="true">
     <button id="startRadioBtn">Start Radio</button>
     <button id="setVarietyBtn">Set Variety</button>
+    <button id="settingsBtn" style="border-top:1px solid rgba(255,255,255,0.03); margin-top:6px;">Settings</button>
   </div>
 
   <!-- content zauzima prostor između top-bar i controls -->
@@ -494,16 +488,57 @@ bottom: 100px; /* blagi “slide-up” efekat */
 
   <div id="popupStartRadio" class="popup">
     <input type="text" id="popupInputStart" placeholder="Enter artist name">
-    <button id="popupStartBtn">Start</button>
+    <div class="row"><button id="popupStartBtn" style="background:var(--btn-accent); color:#000">Start</button></div>
   </div>
 
   <div id="popupSetVariety" class="popup">
+    <h3>Variety</h3>
     <label>Max Similar Artists:</label>
     <input type="number" id="maxSimilarInput" value="250" min="1" max="2000">
     <label>Max Track Pages:</label>
     <input type="number" id="maxTrackInput" value="2" min="1" max="50">
-    <button id="popupVarietyClose">Close</button>
+    <div class="row">
+      <button id="popupVarietyClose" style="background:var(--btn-accent); color:#000">Close</button>
+    </div>
   </div>
+
+  <!-- Settings modal -->
+  <div id="settingsModal" class="popup" aria-hidden="true">
+    <h3>Settings</h3>
+
+    <label>Audio Player</label>
+    <select id="audioPlayerSelect">
+      <option value="default">Default (embedded)</option>
+      <option value="newpipe">NewPipe (intent)</option>
+    </select>
+
+    <label>Last.Fm API</label>
+    <input type="text" id="lastfmInput" placeholder="Last.fm API key">
+
+    <label>Discogs API</label>
+    <input type="text" id="discogsInput" placeholder="Discogs token">
+
+    <label>Spotify Client ID</label>
+    <input type="text" id="spotifyIdInput" placeholder="Spotify Client ID">
+
+    <label>Spotify Client Secret</label>
+    <input type="text" id="spotifySecretInput" placeholder="Spotify Client Secret">
+
+    <label>Proxy Worker</label>
+    <input type="text" id="proxyInput" placeholder="Proxy worker URL">
+
+    <div style="display:flex; gap:8px; margin-top:12px;">
+      <button id="importBtn" style="flex:1; background:#222; color:#fff;">Import Settings</button>
+      <button id="exportBtn" style="flex:1; background:var(--btn-accent); color:#000;">Export Settings</button>
+    </div>
+
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <button id="saveSettingsBtn" style="flex:1; background:var(--btn-accent); color:#000;">Save</button>
+      <button id="closeSettingsBtn" style="flex:1; background:#333; color:#fff;">Close</button>
+    </div>
+    <input type="file" id="importFile" class="hidden-file-input" accept=".json" />
+  </div>
+
 </div>
 
 <!-- SKRIVENI YT PLAYER (u potpunosti sakriven) -->
@@ -517,60 +552,118 @@ bottom: 100px; /* blagi “slide-up” efekat */
   This app work only in portrait mode!<br>Please, rotate your device!
 </div>
 
-
-
-
 <script>
-const PROXY_URL = 'https://mire021.mireinternet.workers.dev?url=';
-let baseArtist = '', currentArtistOnScreen = '', currentVideoUrl = '', currentVideoUrlArtist = '', currentVideoUrlTrack = '', preloadCache = null;
-const EMPTY_VIDEO_URL = "https://www.youtube.com/watch?v=tbnLqRW9Ef0";
+/* ====== GLOBAL CONFIG (hardcoded defaults - can be changed in Settings) ====== */
+let PROXY_URL = 'https://mire021.mireinternet.workers.dev?url=';
+let LASTFM_API_KEY = 'e5147a4d5b2018c3832b146b74b61061'; // default - can be blanked
+let DISCOGS_TOKEN = 'MrikosMJLcAbEUiXPnwsstSRPzQvnAEOHDEcoTaM';
+let SPOTIFY_CLIENT_ID = 'd7308ace981d46d385bab314f8ef0546';
+let SPOTIFY_CLIENT_SECRET = '707748e12786459dba6982c82bdd8d51';
+
+let audioPlayerChoice = 'default'; // 'default' or 'newpipe'
 let maxSimilarPages = 250, maxTrackPages = 2;
 
-// --- Last.fm API key ---
-const LASTFM_API_KEY = 'e5147a4d5b2018c3832b146b74b61061'; // ubaci svoj Last.fm API key
+const EMPTY_VIDEO_URL = "https://www.youtube.com/watch?v=tbnLqRW9Ef0";
 
-// --- Helper functions ---
-function debug(msg) {}
+/* ====== END GLOBAL CONFIG ====== */
 
+let baseArtist = '', currentArtistOnScreen = '', currentVideoUrl = '', currentVideoUrlArtist = '', currentVideoUrlTrack = '', preloadCache = null;
+
+/* --- Helper functions --- */
+function debug(msg){
+  const dbg = document.getElementById('debugArea');
+  if(dbg) dbg.textContent = msg;
+}
 function normalizeArtistForDisplay(a){ return a.replace(/\+/g,' '); }
 function normalizeArtistForSearch(a){ return a.replace(/ /g,'+'); }
-
 function sleep(ms){ return new Promise(res => setTimeout(res, ms)); }
+function showToast(msg, duration=2500){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=> t.classList.remove('show'), duration);
+}
 
+/* --- Persist / Load settings from localStorage --- */
+const SETTINGS_KEY = 'LFM_settings_v1';
 
+function saveSettingsToLocalStorage(){
+  const s = {
+    audioPlayerChoice,
+    LASTFM_API_KEY,
+    DISCOGS_TOKEN,
+    SPOTIFY_CLIENT_ID,
+    SPOTIFY_CLIENT_SECRET,
+    PROXY_URL,
+    maxSimilarPages,
+    maxTrackPages
+  };
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+}
 
+function loadSettingsFromLocalStorage(){
+  try{
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if(!raw) return;
+    const s = JSON.parse(raw);
+    if(s.audioPlayerChoice) audioPlayerChoice = s.audioPlayerChoice;
+    if(s.LASTFM_API_KEY !== undefined) LASTFM_API_KEY = s.LASTFM_API_KEY;
+    if(s.DISCOGS_TOKEN !== undefined) DISCOGS_TOKEN = s.DISCOGS_TOKEN;
+    if(s.SPOTIFY_CLIENT_ID !== undefined) SPOTIFY_CLIENT_ID = s.SPOTIFY_CLIENT_ID;
+    if(s.SPOTIFY_CLIENT_SECRET !== undefined) SPOTIFY_CLIENT_SECRET = s.SPOTIFY_CLIENT_SECRET;
+    if(s.PROXY_URL !== undefined) PROXY_URL = s.PROXY_URL;
+    if(s.maxSimilarPages) maxSimilarPages = s.maxSimilarPages;
+    if(s.maxTrackPages) maxTrackPages = s.maxTrackPages;
+  }catch(e){ console.warn("Failed load settings", e); }
+}
 
+/* Initialize settings from localStorage on load */
+loadSettingsFromLocalStorage();
 
+/* Fill Settings modal inputs from current values */
+function populateSettingsModal(){
+  document.getElementById('audioPlayerSelect').value = audioPlayerChoice || 'default';
+  document.getElementById('lastfmInput').value = LASTFM_API_KEY || '';
+  document.getElementById('discogsInput').value = DISCOGS_TOKEN || '';
+  document.getElementById('spotifyIdInput').value = SPOTIFY_CLIENT_ID || '';
+  document.getElementById('spotifySecretInput').value = SPOTIFY_CLIENT_SECRET || '';
+  document.getElementById('proxyInput').value = PROXY_URL || '';
+  document.getElementById('maxSimilarInput').value = maxSimilarPages;
+  document.getElementById('maxTrackInput').value = maxTrackPages;
+}
 
-// --- Last.fm - Top Tracks
+/* Apply settings from inputs to runtime variables */
+function applySettingsFromModal(){
+  audioPlayerChoice = document.getElementById('audioPlayerSelect').value || 'default';
+  LASTFM_API_KEY = document.getElementById('lastfmInput').value.trim();
+  DISCOGS_TOKEN = document.getElementById('discogsInput').value.trim();
+  SPOTIFY_CLIENT_ID = document.getElementById('spotifyIdInput').value.trim();
+  SPOTIFY_CLIENT_SECRET = document.getElementById('spotifySecretInput').value.trim();
+  PROXY_URL = document.getElementById('proxyInput').value.trim() || PROXY_URL;
+  maxSimilarPages = parseInt(document.getElementById('maxSimilarInput').value) || maxSimilarPages;
+  maxTrackPages = parseInt(document.getElementById('maxTrackInput').value) || maxTrackPages;
+  saveSettingsToLocalStorage();
+}
+
+/* ====== Last.fm / Discogs / Spotify helpers (use global variables above) ====== */
+
+/* --- Last.fm - Top Tracks --- */
 async function getRandomTopTrack(artist){
     try {
-        // 1. Prvi poziv: stranica 1, saznajemo koliko ukupno stranica ima
         const urlPage1 = `https://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist=${encodeURIComponent(artist)}&api_key=${LASTFM_API_KEY}&format=json&limit=50&page=1`;
         const resPage1 = await fetch(urlPage1);
         const dataPage1 = await resPage1.json();
 
-        // koliko ukupno stranica ima
-        const totalPages = parseInt(dataPage1.toptracks['@attr'].totalPages, 10) || 1;
-
-        // Ograničavamo na maxTrackPages iz popup-a
+        const totalPages = parseInt(dataPage1.toptracks?.['@attr']?.totalPages || 1, 10) || 1;
         const maxPages = Math.min(totalPages, maxTrackPages);
-
-        // Pauza 1 sekunda prije sledećeg poziva
         await sleep(1000);
-
-        // 2. Random biramo stranicu između 1 i maxPages
         const page = Math.floor(Math.random() * maxPages) + 1;
-
-        // 3. Poziv za tu stranicu
         const url = `https://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist=${encodeURIComponent(artist)}&api_key=${LASTFM_API_KEY}&format=json&limit=50&page=${page}`;
         const res = await fetch(url);
         const data = await res.json();
 
         const tracks = data.toptracks && data.toptracks.track ? data.toptracks.track.map(t => t.name) : [];
         if(tracks.length === 0) return 'Demo Track';
-
-        // 4. Random pesma sa te stranice
         return tracks[Math.floor(Math.random() * tracks.length)];
 
     } catch(e) {
@@ -579,13 +672,7 @@ async function getRandomTopTrack(artist){
     }
 }
 
-
-
-
-
-
-
-// --- Last.fm - Similar Artists
+/* --- Last.fm - Similar Artists --- */
 async function getRandomSimilarArtist(){
     try{
         if(!baseArtist) return '';
@@ -598,45 +685,19 @@ async function getRandomSimilarArtist(){
     } catch(e){ return baseArtist; }
 }
 
-
-
-
-
-
-
-
-
-
-// --- Last.fm Bio + Discogs/Spotify Images
+/* --- Last.fm Bio + Discogs/Spotify Images --- */
 async function getArtistImagesAndBio(artist) {
-    const discogsToken = "MrikosMJLcAbEUiXPnwsstSRPzQvnAEOHDEcoTaM";
-
     try {
-        // --- Last.fm bio + dodatni podaci ---
         const bioAndInfo = await fetchLastFmBioShort(artist);
-
-      // --- Spotify slike ---
         const spotifyImages = await fetchSpotifyImages(artist);
-
-        // --- Discogs slike ---
-        const discogsImages = await fetchDiscogsImage(artist, discogsToken);
-
-        // --- Spajamo slike: Spotify prva, Discogs posle ---
+        const discogsImages = await fetchDiscogsImage(artist, DISCOGS_TOKEN);
         const images = [...spotifyImages, ...discogsImages.filter(img => !spotifyImages.includes(img))];
-
         return { bio: bioAndInfo, images: images.length ? images : [] };
-
     } catch (e) {
         console.error(e);
         return { bio: "Biography not found.", images: [] };
     }
 
-
-
-
-
-
-    // --- Last.fm Biography  ---
     async function fetchLastFmBioShort(artistName) {
         try {
             const url = `https://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=${encodeURIComponent(artistName)}&api_key=${LASTFM_API_KEY}&format=json`;
@@ -644,16 +705,10 @@ async function getArtistImagesAndBio(artist) {
             const data = await res.json();
 
             let bio = data.artist?.bio?.content?.trim() || "Biography not found.";
-
-            // --- Izvuci link iz bio i ukloni originalni <a> ---
             let readMoreLink = "";
             const match = bio.match(/<a href="([^"]+)">.*?<\/a>/i);
-          // if (match) { readMoreLink = `<br><br>Read more on Last.fm: [${match[1]}]`;
-            if (match) { readMoreLink = '';
-            bio = bio.replace(/<a href="[^"]+">.*?<\/a>/i, "");
-            }
+            if (match) { readMoreLink = ''; bio = bio.replace(/<a href="[^"]+">.*?<\/a>/i, ""); }
 
-            // Dodatne informacije
             const stats = data.artist?.stats || {};
             const tags = data.artist?.tags?.tag?.map(t => t.name).join(", ") || "";
             const similar = data.artist?.similar?.artist?.map(a => a.name).join(", ") || "";
@@ -672,22 +727,13 @@ async function getArtistImagesAndBio(artist) {
             return "Biography not found.";
         }
     }
+}
 
-
-
-
-
-
-
-
-// --- Spotify Images ---
+/* --- Spotify Images --- */
 async function fetchSpotifyImages(artistName, maxImages = 10, enabled = true) {
     if (!enabled) return []; 
     try {
-        const SPOTIFY_CLIENT_ID = "d7308ace981d46d385bab314f8ef0546";
-        const SPOTIFY_CLIENT_SECRET = "707748e12786459dba6982c82bdd8d51";
-
-        // Dobij token
+        if(!SPOTIFY_CLIENT_ID || !SPOTIFY_CLIENT_SECRET) return [];
         const resp = await fetch("https://accounts.spotify.com/api/token", {
             method: "POST",
             headers: {
@@ -698,33 +744,25 @@ async function fetchSpotifyImages(artistName, maxImages = 10, enabled = true) {
         });
         const data = await resp.json();
         const token = data.access_token;
-
-        // Pretraga izvođača
         const searchRes = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(artistName)}&type=artist&limit=50`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
         const searchData = await searchRes.json();
-        const artist = searchData.artists.items[0];
+        const artist = searchData.artists?.items?.[0];
         if (!artist || !artist.images) return [];
-
-        // Biranje slike po prioritetu: 640 -> 320 -> 160
         const preferredSizes = [640, 320, 160];
         let selected = [];
-
         for (let size of preferredSizes) {
             selected = artist.images
                 .filter(img => img.width === size && img.height === size)
                 .slice(0, maxImages)
                 .map(img => img.url);
-            if (selected.length > 0) break; // ako ima slike u toj veličini, ne traži manju
+            if (selected.length > 0) break;
         }
-
-        // fallback: ako nema nijedne u preferiranim veličinama, uzmi najveću dostupnu
         if (selected.length === 0 && artist.images.length > 0) {
             const largest = artist.images.sort((a,b) => (b.width*b.height)-(a.width*a.height))[0];
             selected = [largest.url];
         }
-
         return selected;
     } catch (e) {
         console.warn("Spotify image fetch failed", e);
@@ -732,50 +770,27 @@ async function fetchSpotifyImages(artistName, maxImages = 10, enabled = true) {
     }
 }
 
-
-
-
-
-
-
-
-
-
-   
-// ---Discogs Images ---
-async function fetchDiscogsImage(artistName, token, minWidth = 1500, minHeight = 1500, maxImages = 5, randomize = true, enabled = true) { if (!enabled) return []; 
-
+/* --- Discogs Images --- */
+async function fetchDiscogsImage(artistName, token, minWidth = 1500, minHeight = 1500, maxImages = 5, randomize = true, enabled = true) { 
+    if (!enabled) return []; 
     try {
-        // 1. Search artist
+        if(!token) return [];
         const searchUrl = `https://api.discogs.com/database/search?q=${encodeURIComponent(artistName)}&type=artist&token=${token}`;
         const searchRes = await fetch(searchUrl);
         const searchData = await searchRes.json();
         if (!searchData.results || searchData.results.length === 0) return [];
-
         const firstResult = searchData.results[0];
         const coverImage = firstResult.cover_image || null;
         const artistId = firstResult.id;
-
-        await sleep(1000); // razmak 1s
-
-        // 2. Fetch artist details
+        await sleep(1000);
         const artistUrl = `https://api.discogs.com/artists/${artistId}?token=${token}`;
         const artistRes = await fetch(artistUrl);
         const artistData = await artistRes.json();
-
         if (!artistData.images || artistData.images.length === 0) {
             return coverImage ? [coverImage] : [];
         }
-
-        // 3. Pripremi sve slike (cover + primary + secondary)
         let allImages = [];
-
-        // dodaj cover prvo, ako postoji
-        if (coverImage) {
-            allImages.push({ uri: coverImage, width: 0, height: 0, area: 0, type: "cover" });
-        }
-
-        // dodaj ostale slike iz artistData.images
+        if (coverImage) allImages.push({ uri: coverImage, width: 0, height: 0, area: 0, type: "cover" });
         artistData.images.forEach(img => {
             allImages.push({
                 uri: img.uri,
@@ -785,21 +800,11 @@ async function fetchDiscogsImage(artistName, token, minWidth = 1500, minHeight =
                 type: img.type
             });
         });
-
-        // ukloni eventualni duplikat covera
         if (coverImage) {
             allImages = allImages.filter((img, idx, arr) => !(img.uri === coverImage && idx !== arr.findIndex(i => i.uri === coverImage)));
         }
-
-        // 4. Filtriraj slike po minimalnoj veličini
         let candidates = allImages.filter(img => img.width >= minWidth && img.height >= minHeight);
-
-        // 5. Ako nema kandidata, uzmi step-down (najveće preostale slike)
-        if (candidates.length === 0) {
-            candidates = [...allImages].sort((a, b) => b.area - a.area);
-        }
-
-        // 6. Randomizacija među kandidatima
+        if (candidates.length === 0) candidates = [...allImages].sort((a, b) => b.area - a.area);
         let selected;
         if (randomize) {
             selected = [];
@@ -812,51 +817,30 @@ async function fetchDiscogsImage(artistName, token, minWidth = 1500, minHeight =
         } else {
             selected = candidates.slice(0, maxImages);
         }
-
-        // 7. Fallback: dodaj cover ako još nije u selected i ima mesta
         if (coverImage && !selected.find(img => img.uri === coverImage)) {
             if (selected.length < maxImages) {
                 selected.push({ uri: coverImage, width: 0, height: 0, area: 0, type: "cover" });
             }
         }
-
-        // 8. Sortiranje po površini za prikaz
         selected.sort((a, b) => b.area - a.area);
-
-        // 9. Vraća samo URI-jeve
         return selected.map(img => img.uri);
-
     } catch (e) {
         console.error("Discogs image fetch failed", e);
         return [];
     }
 }
 
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-// --- Carousel ---
+/* --- Carousel --- */
 let carouselInterval = null;
 function renderCarousel(images){
     const imgEl = document.getElementById('albumImg');
-    if(!images.length){ imgEl.src=''; return; }
+    if(!images || !images.length){ imgEl.src=''; return; }
     let idx = 0; imgEl.src = images[idx];
     if(carouselInterval) clearInterval(carouselInterval);
     carouselInterval = setInterval(()=>{ idx=(idx+1)%images.length; imgEl.src=images[idx]; }, 10000);
 }
 
-// --- YouTube search via proxy ---
+/* --- YouTube search via proxy --- */
 const INV_INSTANCES = [
   "https://yewtu.be",
   "https://invidious.snopyta.org",
@@ -865,20 +849,8 @@ const INV_INSTANCES = [
   "https://invidious.tiekoetter.com"
 ];
 
-
-// --- Toast helper ---
-function showToast(msg, duration=3000){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(()=> t.classList.remove('show'), duration);
-}
-
-
-// --- Advanced YouTube search + fallback Invidious + toast ---
 async function searchYouTubeHtml(query){
     const BLACKLIST = ["remix","extended","album","live","mix","cover","tribute","instrumental","karaoke"];
-
     function containsBlacklist(str){ return BLACKLIST.some(b=>str.toLowerCase().includes(b)); }
 
     async function searchYTHTML(q){
@@ -898,7 +870,6 @@ async function searchYouTubeHtml(query){
             const artist = q.split('-')[0].trim().toLowerCase();
             const qNoDash = q.replace(/-/g,'').replace(/\s+/g,' ').trim();
 
-            // --- Fallback logika ---
             for(const v of videos){
                 const title = v.title.runs.map(r=>r.text).join(" ");
                 if(!queryHasBlacklist && containsBlacklist(title)) continue;
@@ -950,7 +921,6 @@ async function searchYouTubeHtml(query){
         throw new Error("Invidious failed");
     }
 
-    // --- glavna logika ---
     try{
         const url = await searchYTHTML(query);
         return url;
@@ -968,37 +938,17 @@ async function searchYouTubeHtml(query){
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/* Build NewPipe intent url */
 function buildIntentUrl(youtubeUrl){
   if(!youtubeUrl) return '';
   const clean = youtubeUrl.replace(/^https?:\/\//,'');
   return `intent://${clean}#Intent;package=org.schabi.newpipe;scheme=https;end`;
 }
 
-/* ---------------------------
-   YOUTUBE IFRAME PLAYER CODE
-   - Sakriveni iframe
-   - Kada se video zavrsi -> automatski poziva next()
-   - play()/next()/stopVideo() su prilagodjene da koriste ovaj player
-   --------------------------- */
-
+/* ====== YT IFRAME PLAYER (hidden) ====== */
 let ytPlayer = null;
 let ytApiLoaded = false;
 
-// Ucitaj YouTube IFrame API
 function loadYouTubeIframeAPI(){
   if(window.YT && YT.Player){
     ytApiLoaded = true;
@@ -1010,10 +960,8 @@ function loadYouTubeIframeAPI(){
   tag.id = 'youtube-iframe-api';
   tag.src = "https://www.youtube.com/iframe_api";
   document.head.appendChild(tag);
-  // global callback onYouTubeIframeAPIReady() is called by the API
 }
 
-// This function is called by the YT API when ready
 function onYouTubeIframeAPIReady(){
   ytApiLoaded = true;
   createYTPlayerIfNeeded();
@@ -1022,7 +970,6 @@ function onYouTubeIframeAPIReady(){
 function createYTPlayerIfNeeded(){
   if(!ytApiLoaded) return;
   if(ytPlayer) return;
-  // create player in the hidden container
   ytPlayer = new YT.Player('ytPlayer', {
     height: '0',
     width: '0',
@@ -1037,24 +984,21 @@ function createYTPlayerIfNeeded(){
       fs: 0
     },
     events: {
-      'onReady': (e) => {
-        // ready
-      },
-      'onStateChange': onYTStateChange
+      'onReady': (e) => {},
+      'onStateChange': onYTStateChange,
+      'onError': (e)=> { console.warn("YT player error", e); }
     }
   });
 }
 
-// Extract video ID from YouTube URL (many formats)
 function getYouTubeID(url){
   if(!url) return null;
-  // examples: https://www.youtube.com/watch?v=VIDEOID, https://youtu.be/VIDEOID, https://www.youtube.com/embed/VIDEOID
   const patterns = [
     /(?:youtu\.be\/)([A-Za-z0-9_\-]{11})/,
     /(?:v=)([A-Za-z0-9_\-]{11})/,
     /(?:embed\/)([A-Za-z0-9_\-]{11})/,
     /(?:\/v\/)([A-Za-z0-9_\-]{11})/,
-    /([A-Za-z0-9_\-]{11})$/ // fallback: last 11 chars
+    /([A-Za-z0-9_\-]{11})$/ // fallback
   ];
   for(const p of patterns){
     const m = url.match(p);
@@ -1064,154 +1008,51 @@ function getYouTubeID(url){
 }
 
 function onYTStateChange(event){
-  // 0 === ended, 1 === playing, 2 === paused, 3 === buffering
   try{
     if(event.data === YT.PlayerState.ENDED){
-      // automatski "stisni" next dugme (poziva next())
-      try{
-        next();
-      }catch(e){
-        console.warn("Auto-next failed:", e);
-        const nb = document.getElementById('nextBtn');
-        if(nb) nb.click();
-      }
-    } else if(event.data === YT.PlayerState.PLAYING){
-      // update media session state
-      try{ if('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing'; }catch(e){}
-    } else if(event.data === YT.PlayerState.PAUSED){
-      try{ if('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused'; }catch(e){}
+      // auto next
+      try{ next(); }catch(e){ console.warn("Auto-next failed", e); }
     }
   }catch(e){
     console.warn('onYTStateChange error', e);
   }
 }
 
-/**
- * Cue and play a youtube URL in hidden player.
- * If player not loaded yet, load API and wait.
- */
 function cueAndPlayUrl(youtubeUrl, autoplay = true){
   if(!youtubeUrl) return;
   const vid = getYouTubeID(youtubeUrl);
-  if(!vid) {
-    console.warn('Invalid YouTube URL:', youtubeUrl);
-    return;
-  }
+  if(!vid) { console.warn('Invalid YouTube URL:', youtubeUrl); return; }
   loadYouTubeIframeAPI();
   const tryLoad = () => {
     if(ytPlayer && typeof ytPlayer.loadVideoById === 'function'){
       try {
-        // load and optionally play
         ytPlayer.loadVideoById(vid);
         if(autoplay){
-          // ensure play attempt after a tiny delay so mobile browsers accept user gesture when originating from click
           setTimeout(()=>{ try{ ytPlayer.playVideo(); }catch(e){ console.warn("playVideo failed", e); } }, 150);
         }
-      } catch(e) {
-        console.warn("Couldn't load video into ytPlayer", e);
-      }
+      } catch(e) { console.warn("Couldn't load video into ytPlayer", e); }
       return true;
     }
     return false;
   };
-
   if(!tryLoad()){
-    // Wait until player is created
     let attempts = 0;
     const int = setInterval(()=> {
       attempts++;
-      if(tryLoad() || attempts > 50){
-        clearInterval(int);
-      }
+      if(tryLoad() || attempts > 50) clearInterval(int);
     }, 200);
   }
 }
 
-/* ---------------------------
-   MEDIA SESSION: metadata + handlers
-   - ovo pomaže da sistem tretira reproduce kao media playback
-   - ažuriraj metadata svaki put kad se promeni pesma
-   --------------------------- */
-
-function updateMediaSessionMetadata(artist, track, imageUrl){
-  try{
-    if(!('mediaSession' in navigator)) return;
-    const artwork = [];
-    if(imageUrl){
-      // push several sizes fallback (device may pick best)
-      artwork.push({ src: imageUrl,   sizes: '512x512', type: 'image/jpeg' });
-      artwork.push({ src: imageUrl,   sizes: '256x256', type: 'image/jpeg' });
-      artwork.push({ src: imageUrl,   sizes: '96x96', type: 'image/jpeg' });
-    }
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: track || '',
-      artist: artist || '',
-      album: '',
-      artwork: artwork
-    });
-  }catch(e){ console.warn("updateMediaSessionMetadata failed", e); }
-}
-
-// Media Session action handlers
-function setupMediaSessionHandlers(){
-  if(!('mediaSession' in navigator)) return;
-  try{
-    navigator.mediaSession.setActionHandler('play', async ()=> {
-      try {
-        // resume hidden player or cue & play currentVideoUrl
-        if(ytPlayer && typeof ytPlayer.playVideo === 'function'){
-          try{ ytPlayer.playVideo(); }catch(e){ console.warn(e); }
-        } else {
-          if(currentVideoUrl) cueAndPlayUrl(currentVideoUrl, true);
-        }
-        navigator.mediaSession.playbackState = 'playing';
-      } catch(e){ console.warn('mediaSession play handler', e); }
-    });
-    navigator.mediaSession.setActionHandler('pause', ()=> {
-      try{
-        if(ytPlayer && typeof ytPlayer.pauseVideo === 'function') ytPlayer.pauseVideo();
-        navigator.mediaSession.playbackState = 'paused';
-      }catch(e){ console.warn(e); }
-    });
-    navigator.mediaSession.setActionHandler('stop', ()=> {
-      try{
-        stopVideo();
-        navigator.mediaSession.playbackState = 'none';
-      }catch(e){ console.warn(e); }
-    });
-    navigator.mediaSession.setActionHandler('nexttrack', ()=> {
-      try{ next(); }catch(e){ console.warn(e); }
-    });
-    // optional: previous track -> we don't have prev logic; map to stop
-    navigator.mediaSession.setActionHandler('previoustrack', ()=> {
-      try{ stopVideo(); }catch(e){ console.warn(e); }
-    });
-  }catch(e){ console.warn('setupMediaSessionHandlers failed', e); }
-}
-
-// initialize handlers on load
-setupMediaSessionHandlers();
-
-/* ---------------------------
-   KRAJ MEDIA SESSION
-   --------------------------- */
-
-
-
-// --- Preload ---
+/* ====== Preload + main flow ====== */
 async function preloadNextTrack(){
     if(!baseArtist) return;
-
     const pickArtist = await getRandomSimilarArtist();
-    await sleep(1000); // razmak 1s
-
+    await sleep(1000);
     const {images, bio} = await getArtistImagesAndBio(pickArtist);
-    await sleep(1000); // razmak 1s
-
+    await sleep(1000);
     const pickTrack = await getRandomTopTrack(pickArtist);
-
-    await sleep(1000); // razmak 1s
-    
+    await sleep(1000);
     const youtubeUrl = await searchYouTubeHtml(`${normalizeArtistForSearch(pickArtist)} - ${pickTrack}`);
     preloadCache = { artist: pickArtist, track: pickTrack, images, bio, youtubeUrl };
 }
@@ -1219,111 +1060,83 @@ async function preloadNextTrack(){
 async function loadArtist(artist) {
     baseArtist = artist;
     currentArtistOnScreen = artist;
-
-    // --- Prikaži Loading u naslovu ---
     const appTitle = document.querySelector('.app-title');
     const originalTitle = appTitle.textContent;
     appTitle.textContent = 'Loading...';
-
     try {
-        // 1. Bio + slike
         const { bio, images } = await getArtistImagesAndBio(artist);
         await sleep(1000);
-
-        // 2. Top track
         const pickTrack = await getRandomTopTrack(artist);
         await sleep(1000);
-
-        // 3. YouTube link
         const youtubeUrl = await searchYouTubeHtml(`${normalizeArtistForSearch(artist)} - ${pickTrack}`);
-
-        // 4. Prikaži sve odjednom
         document.getElementById('bio').innerHTML = bio.replace(/\n/g, '<br>');
         renderCarousel(images);
         document.getElementById('artistName').textContent = normalizeArtistForDisplay(artist);
         document.getElementById('trackName').textContent = pickTrack;
-
         currentVideoUrl = youtubeUrl;
         currentVideoUrlArtist = artist;
         currentVideoUrlTrack = pickTrack;
-
-        // update media session metadata (use first image if available)
-        const artwork = (images && images.length) ? images[0] : null;
-        updateMediaSessionMetadata(artist, pickTrack, artwork);
-        
         preloadNextTrack();
     } catch (e) {
         console.error("loadArtist failed", e);
         document.getElementById('bio').textContent = "Error loading artist.";
     } finally {
-        // --- Vrati originalni naslov ---
         appTitle.textContent = originalTitle;
     }
 }
 
-
-
-// --- Play Video ---
+/* --- Play Video --- */
 async function play(){
     if(!currentVideoUrl) return;
-    // umesto intent u NewPipe - koristimo skriveni embed
-    cueAndPlayUrl(currentVideoUrl, true);
-    // update media session state to playing (will be adjusted by onStateChange)
-    try{ if('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing'; }catch(e){}
-   //  preloadNextTrack();
+    if(audioPlayerChoice === 'newpipe'){
+      // open as intent -> NewPipe app (navigates away)
+      const intentUri = buildIntentUrl(currentVideoUrl);
+      window.location.href = intentUri;
+    } else {
+      // use hidden embed player
+      cueAndPlayUrl(currentVideoUrl, true);
+    }
 }
 
-
-
-// ---- Next Video ----
+/* ---- Next Video ---- */
 async function next(){
     if(preloadCache){
         const {artist, track, images, bio, youtubeUrl} = preloadCache;
         currentArtistOnScreen = artist;
         document.getElementById('artistName').textContent = normalizeArtistForDisplay(artist);
         document.getElementById('trackName').textContent = track;
-        //document.getElementById('bio').textContent= bio;
-
         document.getElementById('bio').innerHTML = bio.replace(/\n/g, '<br>');
-
         renderCarousel(images);
         currentVideoUrl = youtubeUrl;
         currentVideoUrlArtist = artist;
         currentVideoUrlTrack = track;
-
-        // update media session metadata (use first image if available)
-        const artwork = (images && images.length) ? images[0] : null;
-        updateMediaSessionMetadata(artist, track, artwork);
-
-        // umesto intent navigacije: loadamo u skriveni player i reprodukujemo
-        cueAndPlayUrl(youtubeUrl, true);
-
-        // pripremi sledeci
+        // choose playback mode based on settings
+        if(audioPlayerChoice === 'newpipe'){
+          const intentUri = buildIntentUrl(youtubeUrl);
+          window.location.href = intentUri;
+        } else {
+          cueAndPlayUrl(youtubeUrl, true);
+        }
         preloadNextTrack();
+    } else {
+      showToast("No next track prepared yet.");
     }
 }
 
-//---- Stop Video ----
+/*---- Stop Video ----*/
 function stopVideo(){
-    // umesto da otvaramo NewPipe intent, zaustavimo skriveni plejer
-    try{
-      if(ytPlayer && typeof ytPlayer.stopVideo === 'function'){
-        ytPlayer.stopVideo();
-      }
-    }catch(e){ console.warn(e); }
-    // kao fallback, postavimo trenutni url na EMPTY (ne otvaramo novi intent)
-    currentVideoUrl = EMPTY_VIDEO_URL;
-    try{ if('mediaSession' in navigator) navigator.mediaSession.playbackState = 'none'; }catch(e){}
+    if(audioPlayerChoice === 'newpipe'){
+      // for newpipe case, we can't stop app; as fallback do nothing or navigate to empty
+      try{ window.location.href = buildIntentUrl(EMPTY_VIDEO_URL); }catch(e){}
+    } else {
+      try{ if(ytPlayer && typeof ytPlayer.stopVideo === 'function') ytPlayer.stopVideo(); }catch(e){}
+      currentVideoUrl = EMPTY_VIDEO_URL;
+    }
 }
 
-// --- Event listeners ---
-document.getElementById('playBtn').addEventListener('click', async (e)=> {
-  // korisnicki click -> safe za autoplay na vecini browsera
-  await play();
-});
-document.getElementById('nextBtn').addEventListener('click', async ()=> {
-  await next();
-});
+/* --- Event listeners --- */
+document.getElementById('playBtn').addEventListener('click', play);
+document.getElementById('nextBtn').addEventListener('click', next);
 document.getElementById('stopBtn').addEventListener('click', stopVideo);
 
 const plusBtn = document.getElementById('plusBtn');
@@ -1332,10 +1145,13 @@ plusBtn.addEventListener('click', ()=>{
   plusDropdown.style.display = plusDropdown.style.display==='flex' ? 'none' : 'flex';
 });
 
+/* Dropdown actions */
 const startRadioBtn = document.getElementById('startRadioBtn');
 const setVarietyBtn = document.getElementById('setVarietyBtn');
+const settingsBtn = document.getElementById('settingsBtn');
 const popupStartRadio = document.getElementById('popupStartRadio');
 const popupSetVariety = document.getElementById('popupSetVariety');
+const settingsModal = document.getElementById('settingsModal');
 
 startRadioBtn.addEventListener('click', ()=>{
   popupStartRadio.style.display = 'block';
@@ -1347,6 +1163,13 @@ setVarietyBtn.addEventListener('click', ()=>{
   plusDropdown.style.display = 'none';
 });
 
+settingsBtn.addEventListener('click', ()=>{
+  populateSettingsModal();
+  settingsModal.style.display = 'block';
+  plusDropdown.style.display = 'none';
+});
+
+/* popup start button */
 document.getElementById('popupStartBtn').addEventListener('click', async ()=>{
   const val = document.getElementById('popupInputStart').value.trim();
   if(val){
@@ -1356,45 +1179,114 @@ document.getElementById('popupStartBtn').addEventListener('click', async ()=>{
   }
 });
 
+/* variety save/close */
 document.getElementById('popupVarietyClose').addEventListener('click', ()=>{
   maxSimilarPages = parseInt(document.getElementById('maxSimilarInput').value) || 250;
   maxTrackPages = parseInt(document.getElementById('maxTrackInput').value) || 2;
   popupSetVariety.style.display = 'none';
 });
 
-// Hide broken image (browser)
+/* Settings modal buttons */
+document.getElementById('saveSettingsBtn').addEventListener('click', ()=>{
+  applySettingsFromModal();
+  settingsModal.style.display = 'none';
+  showToast('Settings saved.');
+});
+
+document.getElementById('closeSettingsBtn').addEventListener('click', ()=>{
+  settingsModal.style.display = 'none';
+});
+
+/* Import / Export */
+const importFileEl = document.getElementById('importFile');
+document.getElementById('importBtn').addEventListener('click', ()=>{
+  importFileEl.value = '';
+  importFileEl.click();
+});
+
+importFileEl.addEventListener('change', (e)=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    try{
+      const obj = JSON.parse(ev.target.result);
+      // apply safely
+      if(obj.audioPlayerChoice) audioPlayerChoice = obj.audioPlayerChoice;
+      if(obj.LASTFM_API_KEY !== undefined) LASTFM_API_KEY = obj.LASTFM_API_KEY;
+      if(obj.DISCOGS_TOKEN !== undefined) DISCOGS_TOKEN = obj.DISCOGS_TOKEN;
+      if(obj.SPOTIFY_CLIENT_ID !== undefined) SPOTIFY_CLIENT_ID = obj.SPOTIFY_CLIENT_ID;
+      if(obj.SPOTIFY_CLIENT_SECRET !== undefined) SPOTIFY_CLIENT_SECRET = obj.SPOTIFY_CLIENT_SECRET;
+      if(obj.PROXY_URL !== undefined) PROXY_URL = obj.PROXY_URL;
+      if(obj.maxSimilarPages) maxSimilarPages = obj.maxSimilarPages;
+      if(obj.maxTrackPages) maxTrackPages = obj.maxTrackPages;
+      saveSettingsToLocalStorage();
+      populateSettingsModal();
+      showToast('Settings imported.');
+      settingsModal.style.display = 'none';
+    }catch(err){
+      showToast('Import failed: invalid file');
+      console.error(err);
+    }
+  };
+  reader.readAsText(f);
+});
+
+/* Export */
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  const s = {
+    audioPlayerChoice,
+    LASTFM_API_KEY,
+    DISCOGS_TOKEN,
+    SPOTIFY_CLIENT_ID,
+    SPOTIFY_CLIENT_SECRET,
+    PROXY_URL,
+    maxSimilarPages,
+    maxTrackPages
+  };
+  const blob = new Blob([JSON.stringify(s, null, 2)], {type:'application/json'});
+  const now = new Date();
+  const pad = n=> String(n).padStart(2,'0');
+  const fname = `LFM-settings-${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}.json`;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = fname;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  showToast('Settings exported.');
+});
+
+/* Hide broken image (browser) */
 const img = document.getElementById("albumImg");
 img.onerror = () => img.style.display = "none";
 img.onload = () => img.style.display = "block";
 
-
-
-// ----Vrati korisnika u portrait mode
+/* Orientation check */
 function checkOrientation() {
   const overlay = document.getElementById('portraitOverlay');
   if(window.innerHeight < window.innerWidth) {
-    // landscape
     overlay.style.display = 'flex';
   } else {
-    // portrait
     overlay.style.display = 'none';
   }
 }
-
-// inicijalna provera
 checkOrientation();
-
-// osluškuj promene orijentacije / resize
 window.addEventListener('resize', checkOrientation);
 window.addEventListener('orientationchange', checkOrientation);
 
-// Re-setup media session handlers if page regains focus (optional improvement)
-window.addEventListener('visibilitychange', () => {
-  if(document.visibilityState === 'visible') {
-    setupMediaSessionHandlers();
-  }
-});
+/* On first load: populate settings modal inputs with current values */
+populateSettingsModal();
 
+/* If you want to allow installing as PWA (Add to Home Screen) you'll need manifest + service worker.
+   You said to leave it as installable from browser if possible; that requires extra files which
+   are outside single-file HTML. So I'm leaving PWA manifest out per your request. */
+
+/* Optional: expose onYouTubeIframeAPIReady globally (YT API expects this name) */
+window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
+
+/* End of script */
 </script>
 </body>
 </html>

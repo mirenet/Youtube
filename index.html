@@ -1,69 +1,383 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>YouTube Playlist Player</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Minimal YouTube Audio Player (hidden video)</title>
 <style>
-  body { font-family: sans-serif; background: #111; color: #eee; text-align: center; padding: 20px; }
-  iframe { margin: 20px auto; display: block; }
-  button { margin: 5px; padding: 10px 20px; border: none; border-radius: 5px; background: #333; color: #eee; cursor: pointer; }
-  button:hover { background: #555; }
+  :root {
+    --bg: #0f0f0f;
+    --panel: #141414;
+    --accent: #1f8cff;
+    --muted: #9aa3ad;
+    --text: #e6eef6;
+  }
+  body{
+    margin:0;
+    font-family: Inter, system-ui, sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:12px;
+    padding:22px;
+  }
+
+  .card {
+    width:100%;
+    max-width:720px;
+    background:var(--panel);
+    border-radius:10px;
+    padding:14px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.6);
+  }
+
+  .title {
+    font-size:16px;
+    font-weight:600;
+    margin-bottom:8px;
+  }
+
+  .controls {
+    display:flex;
+    gap:8px;
+    align-items:center;
+    flex-wrap:wrap;
+  }
+
+  button {
+    background:#222;
+    color:var(--text);
+    border:1px solid rgba(255,255,255,0.04);
+    padding:8px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:14px;
+  }
+  button:active{ transform:translateY(1px) }
+  .primary { background:var(--accent); color:#fff; border:none; }
+  .small { padding:6px 8px; font-size:13px; }
+
+  .info {
+    margin-top:10px;
+    color:var(--muted);
+    font-size:13px;
+  }
+
+  .seek {
+    width:100%;
+    margin-top:10px;
+  }
+
+  input[type="range"] { width:100%; }
+
+  /* HIDDEN video frame — do NOT use display:none or visibility:hidden */
+  /* Player must exist in DOM and have dimensions > 0 for some browsers / API behaviors. */
+  #player {
+    width: 1px;
+    height: 1px;
+    position: absolute;
+    left: -9999px; /* move off-screen */
+    top: -9999px;
+    opacity: 0.0001; /* nearly invisible */
+    pointer-events: none;
+  }
+
+  /* small status row */
+  .row { display:flex; justify-content:space-between; gap:12px; align-items:center; }
+  .muted { color:var(--muted); font-size:13px; }
 </style>
 </head>
 <body>
-<h1>YouTube Playlist Player</h1>
-<iframe id="player" width="560" height="315"
-  src="https://www.youtube.com/embed/QNJL6nfu__Q?enablejsapi=1"
-  frameborder="0"
-  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-  allowfullscreen>
-</iframe>
-<div>
-  <button onclick="prevVideo()">⏮ Prev</button>
-  <button onclick="nextVideo()">⏭ Next</button>
-</div>
+  <div class="card">
+    <div class="title">Minimal YouTube Audio Player (hidden video)</div>
+
+    <div class="row">
+      <div>
+        <strong id="trackTitle">—</strong>
+        <div class="info" id="trackInfo">Ready</div>
+      </div>
+      <div class="muted">Tip: moraš jednom kliknuti Play zbog browser autoplay pravila</div>
+    </div>
+
+    <div class="controls" style="margin-top:12px">
+      <button id="prevBtn" class="small">⏮ Prev</button>
+      <button id="playBtn" class="primary small">▶ Play</button>
+      <button id="pauseBtn" class="small">⏸ Pause</button>
+      <button id="stopBtn" class="small">■ Stop</button>
+      <button id="nextBtn" class="small">⏭ Next</button>
+
+      <div style="flex:1"></div>
+
+      <label class="small muted" for="vol">Vol</label>
+      <input id="vol" type="range" min="0" max="100" step="1" value="100" />
+    </div>
+
+    <div class="seek">
+      <input id="seek" type="range" min="0" max="100" value="0" />
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px">
+        <span id="currentTime">0:00</span>
+        <span id="duration">0:00</span>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button id="shuffle" class="small">Shuffle off</button>
+      <button id="repeat" class="small">Repeat off</button>
+      <button id="openIframe" class="small">Open iframe (debug)</button>
+    </div>
+
+    <div style="margin-top:8px;color:var(--muted);font-size:13px">
+      Koristi Next/Prev/Play. Video je samo skriven — reklame i dalje mogu da se pojavljuju (YouTube).
+    </div>
+  </div>
+
+  <!-- hidden player (YouTube iframe) -->
+  <div id="player"></div>
 
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
-  // Lista YouTube video ID-eva
-  const playlist = [
-    "QNJL6nfu__Q", // Video 1
-    "dQw4w9WgXcQ", // Video 2
-    "3JZ_D3ELwOQ", // Video 3
-    "kJQP7kiw5Fk", // Video 4
-    "9bZkp7q19f0"  // Video 5
-  ];
+/*
+  Kako radi:
+  - Koristi YouTube IFrame API da kreira player u #player
+  - Player je minimalno vidljiv (1x1 i off-screen), ali potpuno funkcionalan
+  - UI dugmad pozivaju YT API metode (playVideo, pauseVideo, loadVideoById...)
+  - Auto-next radi preko onStateChange (ENDED)
+  - Seek slider i volume su implementirani (volume koriste YT API)
+  - Napomena: autoplay na mobilnim browsere zahteva korisničku interakciju (klik)
+*/
 
-  let currentIndex = 0;
-  let player;
+const playlist = [
+  "QNJL6nfu__Q",
+  "dQw4w9WgXcQ",
+  "3JZ_D3ELwOQ",
+  "kJQP7kiw5Fk",
+  "9bZkp7q19f0"
+];
+let current = 0;
+let player = null;
+let updateTimer = null;
+let shuffleOn = false;
+let repeatMode = false;
 
-  function onYouTubeIframeAPIReady() {
-    player = new YT.Player('player', {
-      videoId: playlist[currentIndex],
-      events: {
-        'onReady': (event) => event.target.playVideo(),
-        'onStateChange': onPlayerStateChange
-      }
-    });
-  }
+const el = {
+  playBtn: document.getElementById('playBtn'),
+  pauseBtn: document.getElementById('pauseBtn'),
+  stopBtn: document.getElementById('stopBtn'),
+  nextBtn: document.getElementById('nextBtn'),
+  prevBtn: document.getElementById('prevBtn'),
+  vol: document.getElementById('vol'),
+  seek: document.getElementById('seek'),
+  currentTime: document.getElementById('currentTime'),
+  duration: document.getElementById('duration'),
+  trackTitle: document.getElementById('trackTitle'),
+  trackInfo: document.getElementById('trackInfo'),
+  shuffle: document.getElementById('shuffle'),
+  repeat: document.getElementById('repeat'),
+  openIframe: document.getElementById('openIframe')
+};
 
-  function onPlayerStateChange(event) {
-    // Kada video završi, pusti sledeći automatski
-    if(event.data === YT.PlayerState.ENDED){
-      nextVideo();
+function fmtTime(s) {
+  s = Math.max(0, Math.floor(s));
+  const m = Math.floor(s/60);
+  const sec = String(s%60).padStart(2,'0');
+  return `${m}:${sec}`;
+}
+
+/* YouTube API ready callback */
+function onYouTubeIframeAPIReady() {
+  player = new YT.Player('player', {
+    height: '1',
+    width: '1',
+    videoId: playlist[current],
+    playerVars: {
+      'playsinline': 1,
+      'autoplay': 0,
+      'controls': 0,
+      'rel': 0,
+      'modestbranding': 1,
+      'disablekb': 1,
+      'fs': 0
+    },
+    events: {
+      'onReady': onPlayerReady,
+      'onStateChange': onPlayerStateChange,
+      'onError': onPlayerError
     }
-  }
+  });
+}
 
-  function nextVideo() {
-    currentIndex = (currentIndex + 1) % playlist.length;
-    player.loadVideoById(playlist[currentIndex]);
-  }
+function onPlayerReady() {
+  el.trackInfo.textContent = 'Loaded';
+  updateUI();
+  // set initial volume
+  setTimeout(()=> {
+    player.setVolume(Number(el.vol.value));
+  }, 300);
+}
 
-  function prevVideo() {
-    currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
-    player.loadVideoById(playlist[currentIndex]);
+function onPlayerError(e) {
+  console.warn('YT error', e);
+  el.trackInfo.textContent = 'Playback error';
+}
+
+function onPlayerStateChange(e) {
+  // -1 unstarted, 0 ended, 1 playing, 2 paused, 3 buffering
+  if (e.data === YT.PlayerState.ENDED) {
+    // auto-next
+    if (repeatMode) {
+      player.playVideo();
+      return;
+    }
+    if (shuffleOn) {
+      current = Math.floor(Math.random()*playlist.length);
+    } else {
+      current = (current + 1) % playlist.length;
+    }
+    loadAndPlay(current);
+  } else if (e.data === YT.PlayerState.PLAYING) {
+    el.trackInfo.textContent = 'Playing';
+    startUpdateTimer();
+    updateTrackTitle();
+  } else if (e.data === YT.PlayerState.PAUSED) {
+    el.trackInfo.textContent = 'Paused';
+    stopUpdateTimer();
+  } else if (e.data === YT.PlayerState.BUFFERING) {
+    el.trackInfo.textContent = 'Buffering...';
+  } else if (e.data === YT.PlayerState.UNSTARTED) {
+    el.trackInfo.textContent = 'Unstarted';
   }
+}
+
+/* update seek bar and times */
+function startUpdateTimer() {
+  stopUpdateTimer();
+  updateTimer = setInterval(()=> {
+    try {
+      const dur = player.getDuration() || 0;
+      const cur = player.getCurrentTime() || 0;
+      if (dur > 0) {
+        const pos = Math.min(100, Math.floor(cur/dur*100));
+        el.seek.value = pos;
+        el.currentTime.textContent = fmtTime(cur);
+        el.duration.textContent = fmtTime(dur);
+      } else {
+        el.seek.value = 0;
+        el.currentTime.textContent = '0:00';
+        el.duration.textContent = '0:00';
+      }
+    } catch(err){ /* ignore until ready */ }
+  }, 500);
+}
+function stopUpdateTimer() {
+  if (updateTimer) { clearInterval(updateTimer); updateTimer = null; }
+}
+
+/* UI actions */
+el.playBtn.addEventListener('click', () => {
+  // user interaction allows autoplay later
+  if (!player) return;
+  player.playVideo();
+});
+el.pauseBtn.addEventListener('click', () => { if (player) player.pauseVideo(); });
+el.stopBtn.addEventListener('click', () => {
+  if (!player) return;
+  player.stopVideo();
+  // reset to start
+  player.seekTo(0, true);
+  el.seek.value = 0;
+  el.currentTime.textContent = '0:00';
+});
+el.nextBtn.addEventListener('click', () => {
+  if (shuffleOn) {
+    current = Math.floor(Math.random()*playlist.length);
+  } else {
+    current = (current + 1) % playlist.length;
+  }
+  loadAndPlay(current);
+});
+el.prevBtn.addEventListener('click', () => {
+  current = (current - 1 + playlist.length) % playlist.length;
+  loadAndPlay(current);
+});
+el.vol.addEventListener('input', (e)=> {
+  const v = Number(e.target.value);
+  if (player) player.setVolume(v);
+});
+el.seek.addEventListener('input', (e)=> {
+  // user dragged seek: seek to percentage
+  if (!player) return;
+  try {
+    const dur = player.getDuration();
+    const pos = Number(e.target.value);
+    const time = dur * pos / 100;
+    player.seekTo(time, true);
+  } catch(err){ console.warn(err); }
+});
+el.shuffle.addEventListener('click', () => {
+  shuffleOn = !shuffleOn;
+  el.shuffle.textContent = shuffleOn ? 'Shuffle on' : 'Shuffle off';
+});
+el.repeat.addEventListener('click', () => {
+  repeatMode = !repeatMode;
+  el.repeat.textContent = repeatMode ? 'Repeat on' : 'Repeat off';
+});
+el.openIframe.addEventListener('click', () => {
+  // opens normal embed page in new tab for debugging / captcha resolution
+  const vid = playlist[current];
+  const url = `https://www.youtube.com/watch?v=${vid}`;
+  window.open(url, '_blank', 'noopener');
+});
+
+/* load a new video without rebuilding player */
+function loadAndPlay(index) {
+  current = (index + playlist.length) % playlist.length;
+  const id = playlist[current];
+  el.trackTitle.textContent = 'Loading...';
+  try {
+    player.loadVideoById(id);
+    // ensure volume
+    player.setVolume(Number(el.vol.value));
+  } catch(err){
+    console.warn('load error', err);
+  }
+}
+
+/* update visible track title */
+function updateTrackTitle() {
+  try {
+    const meta = player.getVideoData();
+    if (meta && meta.title) {
+      el.trackTitle.textContent = meta.title;
+    } else {
+      el.trackTitle.textContent = playlist[current];
+    }
+  } catch(err){
+    el.trackTitle.textContent = playlist[current];
+  }
+}
+
+/* quick UI initialiser */
+function updateUI() {
+  el.trackTitle.textContent = playlist[current];
+  el.trackInfo.textContent = 'Ready';
+  el.vol.value = 100;
+  el.seek.value = 0;
+}
+
+/* keyboard shortcuts: space play/pause, n next, p prev, s stop */
+window.addEventListener('keydown', (e)=> {
+  if (e.code === 'Space') { e.preventDefault(); if (player) { const st = player.getPlayerState(); if (st===YT.PlayerState.PLAYING) player.pauseVideo(); else player.playVideo(); } }
+  if (e.key === 'n') nextBtn.click();
+  if (e.key === 'p') prevBtn.click();
+  if (e.key === 's') stopBtn.click();
+});
+
+/* expose for console debugging */
+window._minimalYT = {
+  player, playlist, loadAndPlay: (i) => loadAndPlay(i)
+};
 </script>
 </body>
 </html>

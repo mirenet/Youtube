@@ -51,7 +51,6 @@ html, body {
   background: var(--bg);
   border-radius: 12px;
   height: 100vh;
-
 }
 
 .top-bar {
@@ -67,7 +66,6 @@ html, body {
   z-index: 100; /* dodato */
 }
 
-
 .content {
   flex: 1;
   display: flex;
@@ -76,10 +74,6 @@ html, body {
   overflow: hidden;
   width: 100%; 
 }
-
-
-
-
 
 .icon-circle {
   width: 40px;
@@ -141,10 +135,7 @@ html, body {
   mask: radial-gradient(farthest-side, transparent 98%, black 99%);
   -webkit-mask: radial-gradient(farthest-side, transparent 98%, black 99%);
   z-index: 1;
-}
-
-.progress {
-display: none;
+  display: none;
 }
 
 .album-img {
@@ -218,7 +209,6 @@ display: none;
   text-align: left; 
 } 
 
-
 .controls {
   position: fixed;
   bottom: env(safe-area-inset-bottom, 10px);
@@ -229,9 +219,6 @@ display: none;
   width: 100%;
   margin-bottom: 5px;
 }
-
-
-
 
 .ctrl {
   display: flex;
@@ -330,52 +317,105 @@ display: none;
   border-radius: 2px;
 }
 
+/* ==== NOVI STIL POPUP PROZORA ==== */
+/* POPUP WINDOWS - manji i sa ivicom */
 .popup {
   display: none;
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 90%;
-  max-width: 420px;
+  width: 80%;          /* manja širina */
+  max-width: 360px;    /* manji max */
   background: #1a1a1c;
-  border-radius: 12px;
-  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(203,216,104,0.6); /* diskretni border */
+  padding: 14px;       /* malo manje padding */
   z-index: 1000;
 }
 
-.popup h3 { margin: 0 0 10px 0; color: #CBD868; }
-.popup label { display:block; margin-top:8px; color:#ddd; font-size:13px;}
-.popup input, .popup select, .popup textarea {
-  width: 100%;
-  padding: 8px;
-  margin-top:4px;
-  border-radius: 8px;
-  background: #111;
-  color: #fff;
-  border: 1px solid rgba(255,255,255,0.06);
-  box-sizing: border-box;
+
+.popup h3 {
+  margin: 0 0 12px 0;
+  color: #CBD868; /* naslov u žuto-zelenoj */
+  font-size: 18px;
+  font-weight: 700;
 }
 
-.popup .row { display:flex; gap:8px; margin-top:8px; }
-.popup .row button { flex:1; padding:8px; border-radius:8px; border:none; cursor:pointer; }
+.popup label {
+  display: block;
+  margin-top: 10px;
+  color: #DADADA;
+  font-size: 14px;
+}
 
+.popup input, .popup select, .popup textarea {
+  width: 100%;
+  padding: 10px;
+  margin-top: 4px;
+  border-radius: 10px; 
+  background: #1A1A1A;
+  color: #9E9DA4; /* BOJA SLOVA UNUTAR INPUT POLJA*/
+  border: 1px solid rgba(255,255,255,0.3); /*BORDER INPUT POLJA*/
+  box-sizing: border-box;
+  font-size: 14px;
+}
+
+
+.popup .row {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.popup .row button {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.popup .row button:hover {
+  background: #CBD868;
+  color: #000;
+}
+
+/* Opcioni efekti za popup fade-in */
+.popup.show {
+  display: block;
+  animation: fadeIn 0.25s ease-out;
+}
+
+
+@keyframes fadeIn {
+  from {opacity: 0; transform: translate(-50%, -48%);}
+  to {opacity: 1; transform: translate(-50%, -50%);}
+}
+
+/* GLAVNI PLUS DROPDOWN MENI - veći prozor */
 .dropdown {
   position: absolute;
   top: 60px;
-  left: 20px;
+  left: 30px;
   display: none;
   flex-direction: column;
   background: #1a1a1c;
-  border-radius: 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(203,216,104,0.6);
+  width: 140px;        /* širina glavnog menija */
+  padding: 15px 0;     /* više prostora unutar */
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-  z-index: 101; /* dodato */
+  z-index: 101;
 }
 
+/* Buttoni unutar menija */
 .dropdown button {
   width: 100%;
-  padding: 8px 12px;
+  padding: 10px 14px;  /* veći klikabilni prostor */
   border: none;
   background: none;
   color: #fff;
@@ -388,32 +428,35 @@ display: none;
   color: #000;
 }
 
+
+
+
 .toast {
-visibility: hidden;
-min-width: 160px;
-max-width: 320px;
-background-color: rgba(83,82,85,0.95);
-color: #fff;
-text-align: center;
-border-radius: 24px;
-padding: 14px 24px;
-position: fixed;
-bottom: 80px;
-left: 50%;
-transform: translateX(-50%);
-font-size: 15px;
-font-family: sans-serif;
-box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-z-index: 9999;
-opacity: 0;
-pointer-events: none;
-transition: opacity 0.25s ease-in-out, bottom 0.25s ease-in-out;
+  visibility: hidden;
+  min-width: 160px;
+  max-width: 320px;
+  background-color: rgba(83,82,85,0.95);
+  color: #fff;
+  text-align: center;
+  border-radius: 24px;
+  padding: 14px 24px;
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 15px;
+  font-family: sans-serif;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease-in-out, bottom 0.25s ease-in-out;
 }
 
 .toast.show {
-visibility: visible;
-opacity: 1;
-bottom: 100px;
+  visibility: visible;
+  opacity: 1;
+  bottom: 100px;
 }
 
 /* Vrati korisnika u portrait mode*/
@@ -441,7 +484,21 @@ bottom: 100px;
   display:none;
 }
 
+
+.settings-buttons {
+    display: flex;          /* omogućava horizontalni raspored */
+    justify-content: flex-end; /* dugmad se poravnavaju desno, može i center ili space-between */
+    gap: 10px;              /* razmak između dugmadi */
+    margin-top: 15px;       /* malo prostora iznad dugmadi */
+}
+
+
+
+
+
 </style>
+
+
 </head>
 
 <body>
@@ -454,9 +511,9 @@ bottom: 100px;
 
   <!-- dropdown je apsolutno pozicioniran unutar .player -->
   <div class="dropdown" id="plusDropdown" aria-hidden="true">
-    <button id="startRadioBtn">Start Radio</button>
-    <button id="setVarietyBtn">Set Variety</button>
-    <button id="settingsBtn" style="border-top:1px solid rgba(255,255,255,0.03); margin-top:6px;">Settings</button>
+    <button id="startRadioBtn" style="font-size: 14px; margin-top:-10px;">Start Radio</button>
+    <button id="setVarietyBtn" style="border-top:1px solid rgba(255,255,255,0.2); margin-top: 0px; font-size: 14px;">Set Variety</button>
+    <button id="settingsBtn" style="border-top:1px solid rgba(255,255,255,0.2); margin-bottom:-10px; font-size: 14px;">Settings</button>
   </div>
 
   <!-- content zauzima prostor između top-bar i controls -->
@@ -506,6 +563,9 @@ bottom: 100px;
   <div id="settingsModal" class="popup" aria-hidden="true">
     <h3>Settings</h3>
 
+
+
+
     <label>Audio Player</label>
     <select id="audioPlayerSelect">
       <option value="default">Default (embedded)</option>
@@ -527,15 +587,32 @@ bottom: 100px;
     <label>Proxy Worker</label>
     <input type="text" id="proxyInput" placeholder="Proxy worker URL">
 
-    <div style="display:flex; gap:8px; margin-top:12px;">
-      <button id="importBtn" style="flex:1; background:#222; color:#fff;">Import Settings</button>
-      <button id="exportBtn" style="flex:1; background:var(--btn-accent); color:#000;">Export Settings</button>
-    </div>
 
-    <div style="display:flex; gap:8px; margin-top:8px;">
-      <button id="saveSettingsBtn" style="flex:1; background:var(--btn-accent); color:#000;">Save</button>
-      <button id="closeSettingsBtn" style="flex:1; background:#333; color:#fff;">Close</button>
+
+
+
+
+
+  <div id="settingsModal" class="modal">
+    <div class="modal-content">
+        <!-- Ostali elementi Settings -->
+
+
+        <div class="row settings-buttons">
+            <button id="importBtn" class="popup-button" style="background:var(--btn-accent); color:#000">Import</button>
+            <button id="exportBtn" class="popup-button" style="background:var(--btn-accent); color:#000">Export</button>
+            <button id="closeSettingsBtn" class="popup-button" style="background:var(--btn-accent); color:#000">Close</button>
+        </div>
     </div>
+</div>
+
+
+
+
+
+
+
+
     <input type="file" id="importFile" class="hidden-file-input" accept=".json" />
   </div>
 
@@ -1186,16 +1263,15 @@ document.getElementById('popupVarietyClose').addEventListener('click', ()=>{
   popupSetVariety.style.display = 'none';
 });
 
-/* Settings modal buttons */
-document.getElementById('saveSettingsBtn').addEventListener('click', ()=>{
-  applySettingsFromModal();
-  settingsModal.style.display = 'none';
-  showToast('Settings saved.');
+
+
+// Close dugme vrši i čuvanje
+document.getElementById('closeSettingsBtn').addEventListener('click', ()=>{
+  applySettingsFromModal();   // sačuvaj sve promene
+  settingsModal.style.display = 'none'; // zatvori modal
+ // showToast("Settings saved.");
 });
 
-document.getElementById('closeSettingsBtn').addEventListener('click', ()=>{
-  settingsModal.style.display = 'none';
-});
 
 /* Import / Export */
 const importFileEl = document.getElementById('importFile');
